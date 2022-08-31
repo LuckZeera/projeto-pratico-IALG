@@ -43,15 +43,19 @@ string cadastrar(){
 		cout << "Nome do usuario:\n";
 		getline(cin, usuario[qtd].nome);
 		cout << "CPF:\n";
+		cin.ignore();
 		cin >> usuario[qtd].cpf;
 		cout << "Numero de matricula:\n";
+		cin.ignore();
 		cin >> usuario[qtd].matricula;
 		cout << "Endereco:\n";
 		cin.ignore();
 		getline(cin, usuario[qtd].endereco);
 		cout << "Telefone:\n";
+		cin.ignore();
 		cin >> usuario[qtd].telefone;
 		cout << "Email:\n";
+		cin.ignore();
 		cin >> usuario[qtd].email;
 		usuario[qtd].situacao = "ativo";
 		for(int i = 0; i < qtd; i++){
@@ -64,7 +68,7 @@ string cadastrar(){
 	}
 	gravar.close();
 	if(erro == true)
-			return "\nERRO! ESSE CPF JA POSSUI USUARIO CADASTRADO!\n\n";
+		return "\nERRO! ESSE CPF JA POSSUI USUARIO CADASTRADO!\n\n";
 	else
 		return "\nCADASTRO EFETUADO COM SUCESSO!\n\n";
 }
@@ -121,7 +125,7 @@ int main(){
 		
 		/*else if(opcao == 5)
 			cout << efetuar_emprestimo();*/
-		else
+		else if (opcao != 8)
 			cout << "Digite uma opcao valida";
 	}
 	cout << "Encerrando sistema...";
