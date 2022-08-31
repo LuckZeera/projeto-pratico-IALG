@@ -3,74 +3,98 @@
 using namespace std;
 
 struct cadastro{
-	string nome;
+	char nome[50];
 	long long int cpf;
-	long long int matricula;
-	string endereco;
-	string telefone;
-	string email;
-	string situacao;
+	long int matricula;
+	char endereco[50];
+	char telefone[20];
+	char email[30];
+	char situacao[7];
 };
 
 string cadastrar(){
-	cadastro *usuario, *copia;
-	int cap = 3;
+	cadastro user, busca;
+	fstream ler("usuarios.dat", ios::in|ios::ate);
+	ofstream gravar("usuarios.dat", ios::app);
+	string nome, end;
+	cout << "Nome do usuario:\n";
+	cin.ignore();
+	getline(cin, nome);
+	for(int i = 0; i < nome.size(); i++)
+		user.nome[i] = nome[i];
+	cout << "CPF:\n";
+	cin.ignore();
+	cin >> user.cpf;
+	cout << "Numero de matricula:\n";
+	cin >> user.matricula;
+	cin.ignore();
+	cout << "Endereco:\n";
+	cin.ignore();
+	getline(cin, end);
+	for(int i = 0; i < end.size(); i++)
+		user.endereco[i] = end[i];
+	cout << "Telefone:\n";
+	cin.ignore();
+	cin >> user.telefone;
+	cout << "Email:\n";
+	cin.ignore();
+	cin >> user.email;
+	string sit = "ativo**";
+	for(int i = 0; i < 7; i++)
+		user.situacao[i] = sit[i];
+	long long int bytes = ler.tellg();
+	int num_users = int(bytes/sizeof(cadastro));
+	int cont = 0;
 	bool erro = false;
-	ifstream ler("usuarios");
-	ofstream gravar("usuarios", ios::app);
-	int qtd = 0;
 	if(ler){
-		while(ler){
-			usuario = new cadastro[cap];
-			for(int i = 0; i < qtd; i++){
-				usuario[i] = copia[i];
-			}
-			getline(ler, usuario[qtd].nome);
-			ler >> usuario[qtd].cpf >> usuario[qtd].matricula;
-			getline(ler, usuario[qtd].endereco);
-			ler >> usuario[qtd].telefone >> usuario[qtd].email >> usuario[qtd].situacao;
-			qtd++;
-			if(qtd == cap){
-				cap += 3;
-			}
-			copia = usuario;
-		}
-		delete copia;
-	}
-	ler.close();
-	if(gravar){
-		cin.ignore();
-		cout << "Nome do usuario:\n";
-		getline(cin, usuario[qtd].nome);
-		cout << "CPF:\n";
-		cin.ignore();
-		cin >> usuario[qtd].cpf;
-		cout << "Numero de matricula:\n";
-		cin.ignore();
-		cin >> usuario[qtd].matricula;
-		cout << "Endereco:\n";
-		cin.ignore();
-		getline(cin, usuario[qtd].endereco);
-		cout << "Telefone:\n";
-		cin.ignore();
-		cin >> usuario[qtd].telefone;
-		cout << "Email:\n";
-		cin.ignore();
-		cin >> usuario[qtd].email;
-		usuario[qtd].situacao = "ativo";
-		for(int i = 0; i < qtd; i++){
-			if(usuario[i].cpf == usuario[qtd].cpf)
+		while (cont < num_users){
+			ler.seekg(cont*sizeof(cadastro));
+			ler.read((char*)&busca, sizeof(cadastro));
+			if(user.cpf == busca.cpf)
 				erro = true;
-		}
-		if(erro == false){
-			gravar << usuario[qtd].nome << endl << usuario[qtd].cpf << endl << usuario[qtd].matricula << endl << usuario[qtd].endereco << endl << usuario[qtd].telefone << endl << usuario[qtd].email << endl << usuario[qtd].situacao << endl;
+			cont++;
 		}
 	}
-	gravar.close();
 	if(erro == true)
 		return "\nERRO! ESSE CPF JA POSSUI USUARIO CADASTRADO!\n\n";
-	else
+	else {
+		gravar.write((const char*)(&user), sizeof(cadastro));
+		gravar.close();
 		return "\nCADASTRO EFETUADO COM SUCESSO!\n\n";
+	}
+}
+
+void listar_ativos(){
+	fstream ler("usuarios.dat", ios::in|ios::ate);
+	ofstream gravar("usuarios.dat", ios::app);
+	long long int bytes = ler.tellg();
+	int num_users = int(bytes/sizeof(cadastro));
+	int cont = 0;
+	cadastro busca;
+	string ativo = "ativo**";
+	char vet[7] = {'*','*','*','*','*','*','*'};
+	for(int i = 0; i < 5; i++)
+		vet[i] = ativo[i];
+	if(ler){
+		while (cont < num_users){
+			ler.seekg(cont*sizeof(cadastro));
+			ler.read((char*)&busca, sizeof(cadastro));
+			bool ok = true;
+			for(int i = 0; i < 7; i++){
+				if(busca.situacao[i] != ativo[i])
+					ok = false;
+			}
+			if(ok){
+				string nome, email;
+				for(int i = 0; i < 50; i++)
+					cout << busca.nome[i];
+				for(int i = 0; i < 30; i++)
+					email[i] = busca.email[i];
+				cout << nome << " " << busca.matricula << " " << email << endl;
+			}
+			cont++;
+		}
+	}
 }
 
 string excluir_dados(){
@@ -120,15 +144,17 @@ int main(){
 		cin >> opcao; //escolha da ação pelo usuário
 		if(opcao == 1)
 			cout << cadastrar();
+		else if(opcao == 3)
+			listar_ativos();
 		else if(opcao == 4)
 			cout << excluir_dados();
 		
 		/*else if(opcao == 5)
 			cout << efetuar_emprestimo();*/
-		else if (opcao != 8)
+		else if(opcao != 8)
 			cout << "Digite uma opcao valida";
 	}
-	cout << "Encerrando sistema...";
+	cout << "\nEncerrando o sistema...\n\n";
 
 	return 0;
 }
