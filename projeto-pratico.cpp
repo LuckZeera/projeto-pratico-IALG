@@ -1,26 +1,29 @@
 #include <iostream>
 #include <fstream>
+#include <cstring>
 using namespace std;
 
-struct cadastro{
+struct cadastro{      // CRIANDO REGISTRO DE CADASTRO
 	char nome[50];
 	long long int cpf;
 	long int matricula;
 	char endereco[50];
 	char telefone[20];
-	char email[30];
-	char situacao[7];
+	char email[150];
+	int situacao;
 };
 
-string cadastrar(){
+string cadastrar(){         // CADASTRO DE USUARIOS EM ARQUIVO BINARIO
 	cadastro user, busca;
 	fstream ler("usuarios.dat", ios::in|ios::ate);
 	ofstream gravar("usuarios.dat", ios::app);
-	string nome, end;
+	string nome, end, email;
+	int sit;
 	cout << "Nome do usuario:\n";
 	cin.ignore();
 	getline(cin, nome);
-	for(int i = 0; i < nome.size(); i++)
+	int x=nome.size();
+	for(int i = 0; i < x; i++)
 		user.nome[i] = nome[i];
 	cout << "CPF:\n";
 	cin.ignore();
@@ -31,17 +34,21 @@ string cadastrar(){
 	cout << "Endereco:\n";
 	cin.ignore();
 	getline(cin, end);
-	for(int i = 0; i < end.size(); i++)
+	int n=end.size();
+	for(int i = 0; i < n; i++)
 		user.endereco[i] = end[i];
 	cout << "Telefone:\n";
 	cin.ignore();
 	cin >> user.telefone;
 	cout << "Email:\n";
 	cin.ignore();
-	cin >> user.email;
-	string sit = "ativo**";
-	for(int i = 0; i < 7; i++)
-		user.situacao[i] = sit[i];
+	getline(cin,email);
+	int t=email.size();
+	for(int i=0;i<t;i++){
+		user.email[i] = email[i]; 
+	}
+	user.situacao = 1;
+	sit = user.situacao;
 	long long int bytes = ler.tellg();
 	int num_users = int(bytes/sizeof(cadastro));
 	int cont = 0;
@@ -55,7 +62,7 @@ string cadastrar(){
 			cont++;
 		}
 	}
-	if(erro == true)
+	if(erro == true and user.situacao == 1)
 		return "\nERRO! ESSE CPF JA POSSUI USUARIO CADASTRADO!\n\n";
 	else {
 		gravar.write((const char*)(&user), sizeof(cadastro));
@@ -64,50 +71,76 @@ string cadastrar(){
 	}
 }
 
-void listar_ativos(){
+void listar_ativos(){       //LISTAGEM DE USUARIOS ATIVOS
 	fstream ler("usuarios.dat", ios::in|ios::ate);
 	ofstream gravar("usuarios.dat", ios::app);
 	long long int bytes = ler.tellg();
 	int num_users = int(bytes/sizeof(cadastro));
 	int cont = 0;
 	cadastro busca;
-	string ativo = "ativo**";
-	char vet[7] = {'*','*','*','*','*','*','*'};
-	for(int i = 0; i < 5; i++)
-		vet[i] = ativo[i];
+	int ativo = 1;
 	if(ler){
 		while (cont < num_users){
 			ler.seekg(cont*sizeof(cadastro));
 			ler.read((char*)&busca, sizeof(cadastro));
 			bool ok = true;
-			for(int i = 0; i < 7; i++){
-				if(busca.situacao[i] != ativo[i])
-					ok = false;
-			}
+			if(busca.situacao != 1)
+				ok = false;
 			if(ok){
-				string nome, email;
-				for(int i = 0; i < 50; i++)
+				for(int i = 0; i < strlen(busca.nome); i++)
 					cout << busca.nome[i];
-				for(int i = 0; i < 30; i++)
-					email[i] = busca.email[i];
-				cout << nome << " " << busca.matricula << " " << email << endl;
+				cout << " " << busca.matricula << " ";
+				for(int i = 0; i < strlen(busca.email); i++)
+					cout << busca.email[i];
+				cout << endl;
 			}
 			cont++;
 		}
 	}
 }
 
-string excluir_dados(){
-	cadastro *usuario, *copia;
-	long long int matricula;
-	int cap = 3, qtd = 0, confirmar = 0;
+void excluir_dados(){      //EXCLUSAO DE DADOS
+	cadastro usuario;
+	string nome;
+	long int matricula;
+	int cont = 0, confirmar,novasit;
+	fstream ler("usuarios.dat", ios::in);
+	ofstream grava("usuarios.dat");
 	cout << "Numero de matricula:\n";
 	cin >> matricula;
-	
+	cout << "\nNome do usuario: ";
+	cin.ignore();
+	getline(cin,nome);
+	cout << "Comfirma exclusao? 1-sim 2-nao \n";
+	cin >> confirmar;
 	if(confirmar == 1)
-		return "situaçao: inativo";
+		novasit = 0;
 	else
-		return "Exclusao cancelada";
+		novasit = 1;
+	if(ler){
+		bool ok=false;
+		long int tamanhob=ler.tellg();
+		long long int num_regs=int(tamanhob/sizeof(cadastro));
+		while ((cont < num_regs)  and (ok)){
+      		ler.seekp(cont*sizeof(cadastro));
+      		ler.read((char*) &usuario, sizeof(cadastro));
+      		if (usuario.matricula == matricula){
+          		ler.seekp((cont)*sizeof(cadastro));
+				usuario.situacao = novasit;
+          		grava.write((char*)(&usuario), sizeof(cadastro));
+          		ok=0;
+      		}
+      		cont++;
+  		}
+		grava.close();
+	}
+	ler.close();
+	cout << "\nNome do usuario: " << nome << endl;
+	if(usuario.situacao == 1)
+		cout << "situacao: ativo";
+	else
+		cout << "situacao: inativo" << endl;
+	
 }
 
 /*string efetuar_emprestimo(){
@@ -125,8 +158,8 @@ string excluir_dados(){
 	ofstream gravar("emprestimos");
 	while(ler){
 	}
-
 }*/
+
 
 int main(){
 	int opcao = 0;
@@ -147,7 +180,7 @@ int main(){
 		else if(opcao == 3)
 			listar_ativos();
 		else if(opcao == 4)
-			cout << excluir_dados();
+			excluir_dados();
 		
 		/*else if(opcao == 5)
 			cout << efetuar_emprestimo();*/
