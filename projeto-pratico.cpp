@@ -70,6 +70,10 @@ string cadastrar(){         // CADASTRO DE USUARIOS EM ARQUIVO BINARIO
 		return "\nCADASTRO EFETUADO COM SUCESSO!\n\n";
 	}
 }
+/*string consultar_livros(){
+	fstream ler("emprestimos.dat");
+
+}*/
 
 void listar_ativos(){       //LISTAGEM DE USUARIOS ATIVOS
 	fstream ler("usuarios.dat", ios::in|ios::ate);
@@ -132,15 +136,21 @@ void excluir_dados(){      //EXCLUSAO DE DADOS
       		}
       		cont++;
   		}
-		grava.close();
 	}
 	ler.close();
-	cout << "\nNome do usuario: " << nome << endl;
-	if(usuario.situacao == 1)
-		cout << "situacao: ativo";
-	else
-		cout << "situacao: inativo" << endl;
-	
+	if(usuario.matricula == matricula){
+		cout << "\nNome do usuario: " << nome << endl;
+		if(usuario.situacao == 1)
+			cout << "situacao: ativo" << endl;
+		else
+			cout << "situacao: inativo" << endl;
+	}
+	else{
+		usuario.situacao = 1;
+		cout << "Matricula nao encontrada\n";
+	}
+	grava.write((char*)(&usuario), sizeof(cadastro));
+	grava.close();
 }
 
 /*string efetuar_emprestimo(){
